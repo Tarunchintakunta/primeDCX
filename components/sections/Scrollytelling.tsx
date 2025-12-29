@@ -2,7 +2,6 @@
 
 import { useRef } from "react"
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion"
-import { cn } from "@/lib/utils"
 
 const content = [
   {
@@ -25,43 +24,28 @@ const content = [
     text: "Your growth is our priority. With comprehensive education, 24/7 support, and advanced tools, we empower you to make informed decisions.",
     video: "/videos/video-4.mp4",
   },
+  {
+    title: "Institutional Grade",
+    text: "Access deep liquidity pools and institutional-grade pricing. Built for high-volume traders who demand the best market conditions.",
+    video: "/videos/video-5.mp4",
+  },
 ]
 
 interface BackgroundVideoProps {
-    index: number
     item: typeof content[0]
-    scrollYProgress: MotionValue<number>
+    opacity: MotionValue<number>
 }
 
-function BackgroundVideo({ index, item, scrollYProgress }: BackgroundVideoProps) {
-    const start = index * 0.2
-    const end = start + 0.2
-  
-    const opacity = useTransform(
-      scrollYProgress,
-      [start, start + 0.05, end - 0.05, end],
-      [0, 1, 1, 0]
-    )
-
-    const firstItemOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
-    
+function BackgroundVideo({ item, opacity }: BackgroundVideoProps) {
     return (
         <motion.div
-            style={{ opacity: index === 0 ? firstItemOpacity : opacity }} 
+            style={{ opacity }} 
             className="absolute inset-0 w-full h-full flex items-center justify-center"
         >
            {/* Fallback gradient */}
-           <div 
-              className={cn(
-                  "absolute inset-0 bg-linear-to-br opacity-50", 
-                  index === 0 ? "from-blue-900 to-black" :
-                  index === 1 ? "from-purple-900 to-black" :
-                  index === 2 ? "from-indigo-900 to-black" :
-                  "from-emerald-900 to-black"
-              )} 
-           />
+           <div className="absolute inset-0 bg-linear-to-br from-blue-900/20 to-black/40 opacity-50" />
            <video
-             className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
+             className="absolute inset-0 w-full h-full object-cover"
              autoPlay
              muted
              loop
@@ -81,15 +65,34 @@ export const Scrollytelling = () => {
     offset: ["start start", "end end"],
   })
 
+  // Fade timings for 5 items (4 scroll transitions)
+  // 0 -> 0.25 -> 0.5 -> 0.75 -> 1.0
+  
+  // Video 1: Always fully visible as base layer
+  const opacity1 = useTransform(scrollYProgress, [0, 1], [1, 1])
+  
+  // Video 2: Fades in over Video 1 (target 0.25)
+  const opacity2 = useTransform(scrollYProgress, [0.15, 0.25], [0, 1])
+  
+  // Video 3: Fades in over Video 2 (target 0.5)
+  const opacity3 = useTransform(scrollYProgress, [0.4, 0.5], [0, 1])
+  
+  // Video 4: Fades in over Video 3 (target 0.75)
+  const opacity4 = useTransform(scrollYProgress, [0.65, 0.75], [0, 1])
+
+  // Video 5: Fades in over Video 4 (target 1.0)
+  const opacity5 = useTransform(scrollYProgress, [0.9, 1.0], [0, 1])
+
+  const opacities = [opacity1, opacity2, opacity3, opacity4, opacity5]
+
   return (
-    <section ref={containerRef} className="relative h-[400vh] bg-black">
+    <section ref={containerRef} className="relative h-[500vh] bg-black">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         {content.map((item, index) => (
             <BackgroundVideo 
                 key={index} 
-                index={index} 
                 item={item} 
-                scrollYProgress={scrollYProgress} 
+                opacity={opacities[index]} 
             />
         ))}
         
@@ -107,18 +110,22 @@ export const Scrollytelling = () => {
         </div>
       </div>
 
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full -mt-[100vh]">
         {content.map((item, index) => (
             <div key={index} className="h-screen flex items-center justify-center p-6 text-center">
                 <motion.div 
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ margin: "-20%" }}
                     transition={{ duration: 0.8 }}
-                    className="max-w-2xl backdrop-blur-md bg-black/60 p-10 rounded-2xl border border-white/10 shadow-2xl"
+                    className="max-w-4xl px-4"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">{item.title}</h2>
-                    <p className="text-lg md:text-xl text-gray-200 leading-relaxed">{item.text}</p>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white drop-shadow-xl tracking-tight leading-tight">
+                        {item.title}
+                    </h2>
+                    <p className="text-lg md:text-2xl font-medium text-white/90 leading-relaxed drop-shadow-lg max-w-2xl mx-auto">
+                        {item.text}
+                    </p>
                 </motion.div>
             </div>
         ))}
